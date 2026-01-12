@@ -6,9 +6,11 @@ import {
   CheckCircle2,
   User,
   Clock,
+  Lock,
 } from "lucide-react";
 import type { Job, Step, Stage, StepStatus } from "../Type";
 import FormInput from "./FormInput";
+
 
 interface StepRowProps {
   step: Step;
@@ -32,32 +34,46 @@ function StepRow({
     onUpdate(step.id, status, tempEmp || "Unknown");
   };
 
+  const isCurrentActive = !isLocked && step.status === "pending" && !readOnly;
+
   return (
     <div
-      className={`p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition-colors ${
+      className={`p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition-all duration-300 border-b last:border-0 ${
         step.status === "completed"
-          ? "bg-green-50/50"
+          ? "bg-green-50/50" 
           : step.status === "skipped"
-          ? "bg-slate-100"
-          : "hover:bg-slate-50"
+          ? "bg-slate-100 opacity-70"
+          : isLocked
+          ? "bg-slate-50 opacity-40 grayscale pointer-events-none select-none" // ล็อค (จาง + กดไม่ได้)
+          : "bg-white border-l-4 border-l-blue-500 shadow-sm" // ปัจจุบัน (เด่นขึ้นมา)
       }`}
     >
       <div className="flex-1 flex items-center gap-3">
         <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center border ${
+          className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
             step.status === "completed"
               ? "bg-green-500 border-green-500 text-white"
               : step.status === "skipped"
               ? "bg-slate-300 border-slate-300 text-white"
-              : "border-slate-300 text-transparent bg-white"
+              : isCurrentActive
+              ? "border-blue-500 text-blue-600 bg-blue-50 ring-2 ring-blue-100 animate-pulse" // วงกระพริบถ้าถึงคิว
+              : "border-slate-300 text-slate-300 bg-white"
           }`}
         >
-          <CheckCircle2 size={16} />
+          {step.status === "completed" ? (
+            <CheckCircle2 size={16} />
+          ) : isLocked ? (
+            <Lock size={14} /> 
+          ) : (
+            <div className="w-2.5 h-2.5 bg-current rounded-full" />
+          )}
         </div>
         <span
-          className={`font-medium ${
+         className={`font-medium transition-colors ${
             step.status === "skipped"
               ? "text-slate-400 line-through"
+              : isLocked
+              ? "text-slate-400"
               : "text-slate-800"
           }`}
         >
@@ -65,7 +81,7 @@ function StepRow({
         </span>
       </div>
       <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-        {(step.status !== "pending" || !readOnly) && (
+        {(step.status !== "pending" || (!readOnly && !isLocked)) && (
           <div className="flex flex-col md:flex-row gap-2 text-sm text-slate-500">
             {step.status === "pending" && !readOnly ? (
               <div className="flex items-center bg-white border border-slate-300 rounded-md px-2 py-1 focus-within:ring-2 focus-within:ring-blue-500">
@@ -94,27 +110,27 @@ function StepRow({
           </div>
         )}
         {!readOnly && !isLocked && step.status === "pending" && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 animate-in fade-in zoom-in duration-300">
             {canSkip && (
               <button
                 onClick={() => handleAction("skipped")}
-                className="text-xs px-3 py-1 rounded border border-slate-300 text-slate-500 hover:bg-slate-100"
+                className="text-xs px-3 py-1.5 rounded border border-slate-300 text-slate-500 hover:bg-slate-50"
               >
                 ข้าม
               </button>
             )}
             <button
               onClick={() => handleAction("completed")}
-              className="text-xs px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+              className="text-xs px-4 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 shadow-md transition-transform active:scale-95"
             >
               เสร็จสิ้น
             </button>
           </div>
         )}
-        {!readOnly && step.status !== "pending" && (
+        {!readOnly && step.status !== "pending" && !isLocked && (
           <button
             onClick={() => onUpdate(step.id, "pending", "")}
-            className="text-slate-400 hover:text-red-500 text-xs underline"
+            className="text-slate-400 hover:text-orange-500 text-xs underline ml-2"
           >
             แก้ไข
           </button>
@@ -138,18 +154,23 @@ function StageCard({
   onStepUpdate,
   onStageComplete,
 }: StageCardProps) {
-  const allStepsDone = stage.steps.every((s: Step) => s.status !== "pending");
-  if (!isActive && !stage.isCompleted && !isFinished) {
+  const allStepsDone = stage.steps.every((s) => s.status !== "pending");
+  const isCompletedView = stage.isCompleted || isFinished;
+  if (!isActive && !isCompletedView) {
     return (
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 opacity-60 flex items-center justify-between">
-        <h3 className="font-bold text-slate-500">{stage.name}</h3>
-        <span className="text-xs bg-slate-200 px-2 py-1 rounded">
-          รอการดำเนินการ
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 opacity-60 flex items-center justify-between grayscale select-none">
+        <h3 className="font-bold text-slate-500 flex items-center gap-2">
+          <Lock size={16} /> {stage.name}
+        </h3>
+        <span className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-500">
+          รอดำเนินการ
         </span>
       </div>
     );
   }
-  const isCompletedView = stage.isCompleted || isFinished;
+
+  
+  
   return (
     <div
       className={`rounded-xl border shadow-sm transition-all overflow-hidden ${
