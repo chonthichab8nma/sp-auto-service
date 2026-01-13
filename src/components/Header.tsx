@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react"; // 1. อย่าลืม import useMemo
+import React, { useState, useEffect, useRef, useMemo } from "react"; 
 import { Wrench, Search, Plus, X } from "lucide-react";
 import { type Job } from "../Type";
 
@@ -70,7 +70,7 @@ export default function Header({
             <Wrench size={20} />
           </div>
           <h1 className="text-xl font-bold text-blue-900 hidden md:block">
-            Garage Pro
+           เอ.พี.ออโต้เซอร์วิส
           </h1>
         </div>
 
@@ -119,7 +119,7 @@ export default function Header({
                           {job.registration || "ไม่ระบุทะเบียน"}
                         </div>
                         <div className="text-xs text-slate-500">
-                          ถุง/ถัง: {job.bagNumber || "-"}
+                          เลขถัง: {job.bagNumber || "-"}
                         </div>
                       </div>
                     </div>
