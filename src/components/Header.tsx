@@ -7,6 +7,7 @@ interface HeaderProps {
   onJobSelect: (id: string) => void;
   onGoHome: () => void;
   onNewJob: () => void;
+  onLogout: () => void;
 }
 
 export default function Header({

@@ -1,380 +1,277 @@
 import React, { useState } from "react";
-import {
-  Car,
-  FileText,
-  DollarSign,
-  User,
-  ChevronRight,
-  Save,
-  Phone,
-  Calendar,
-  CreditCard,
-} from "lucide-react";
+import { XCircle, Car, Wrench, CreditCard, User } from "lucide-react";
+import { type JobFormData } from "../Type";
+import FormInput from "./FormInput";
 
-export type PaymentType = "Insurance" | "Cash";
-
-export interface JobFormData {
-  plateNumber: string;
-  bagNumber: string;
-  brand: string;
-  carType: string;
-  model: string;
-  year: string;
-  color: string;
-  startDate: string;
-  estimatedEndDate: string;
-  receiverName: string;
-  excessCost: number;
-  paymentType: PaymentType;
-  customerName: string;
-  customerPhone: string;
-  customerAddress: string;
-}
-
-export interface JobEntryFormProps {
-  onSave: (jobData: JobFormData) => void;
+interface CreateJobFormProps {
   onCancel: () => void;
+  onSubmit: (data: JobFormData) => void;
 }
 
-export default function JobEntryForm({ onSave, onCancel }: JobEntryFormProps) {
+export default function CreateJobForm({
+  onCancel,
+  onSubmit,
+}: CreateJobFormProps) {
   const [formData, setFormData] = useState<JobFormData>({
-    plateNumber: "",
+    registration: "",
     bagNumber: "",
     brand: "",
-    carType: "",
+    type: "",
     model: "",
     year: "",
     color: "",
-    startDate: "",
+    startDate: new Date().toISOString().split("T")[0],
     estimatedEndDate: "",
-    receiverName: "",
-    excessCost: 0,
+    receiver: "",
+    excessFee: 0,
     paymentType: "Insurance",
+    insuranceCompany: "",
     customerName: "",
     customerPhone: "",
     customerAddress: "",
   });
 
-  const handleSubmit = () => {
-    if (!formData.plateNumber || !formData.bagNumber) {
-      alert("กรุณากรอกทะเบียนรถและเลขถัง");
-      return;
-    }
-    onSave({
-      ...formData,
-      excessCost: Number(formData.excessCost),
-    });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+   
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.registration || !formData.brand)
+      return alert("กรุณากรอกข้อมูลสำคัญ");
+    onSubmit(formData);
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
-      <div className="mb-6 flex items-center gap-3">
+    <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+      <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+        <h2 className="text-xl font-bold text-slate-800">รับรถเข้าซ่อมใหม่</h2>
         <button
           onClick={onCancel}
-          className="p-2 hover:bg-slate-200 rounded-full transition text-slate-500"
+          className="text-slate-400 hover:text-slate-600"
         >
-          <ChevronRight className="rotate-180" />
+          <XCircle />
         </button>
-        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          รับรถเข้าซ่อม (Job Entry)
-        </h2>
       </div>
 
-      <div className="space-y-6">
-        {/* Section 1: Vehicle Information */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
-            <Car className="text-blue-500" /> ข้อมูลรถยนต์ (Vehicle Info)
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                ทะเบียนรถ *
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg bg-slate-50"
-                value={formData.plateNumber}
-                onChange={(e) =>
-                  setFormData({ ...formData, plateNumber: e.target.value })
-                }
-                placeholder="กข-1234"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                เลขถัง / Job No. *
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg bg-slate-50"
-                value={formData.bagNumber}
-                onChange={(e) =>
-                  setFormData({ ...formData, bagNumber: e.target.value })
-                }
-                placeholder="A001"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                ประเภทรถ
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                value={formData.carType}
-                onChange={(e) =>
-                  setFormData({ ...formData, carType: e.target.value })
-                }
-                placeholder="ระบุประเภทรถ (เช่น เก๋ง, กระบะ, SUV)"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                ยี่ห้อ (Brand)
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg"
-                value={formData.brand}
-                onChange={(e) =>
-                  setFormData({ ...formData, brand: e.target.value })
-                }
-                placeholder="Toyota..."
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                รุ่น (Model)
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg"
-                value={formData.model}
-                onChange={(e) =>
-                  setFormData({ ...formData, model: e.target.value })
-                }
-                placeholder="Camry..."
-              />
-            </div>
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                ปี (Year)
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg"
+      <form onSubmit={handleSubmit} className="p-8 space-y-8">
+        <section className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+          <div className="flex items-center gap-2 mb-4 text-blue-600">
+            <Car size={20} />
+            <h3 className="font-semibold">รายละเอียดรถยนต์</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="ทะเบียนรถ"
+              name="registration"
+              value={formData.registration}
+              onChange={handleChange}
+              required
+            />
+            <FormInput
+              label="เลขถัง"
+              name="bagNumber"
+              value={formData.bagNumber}
+              onChange={handleChange}
+              required
+            />
+
+            <FormInput
+              label="ยี่ห้อ"
+              name="brand"
+              value={formData.brand}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="รุ่น"
+              name="model"
+              value={formData.model}
+              onChange={handleChange}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput
+                label="ปี"
+                name="year"
                 value={formData.year}
-                onChange={(e) =>
-                  setFormData({ ...formData, year: e.target.value })
-                }
+                onChange={handleChange}
+                type="number"
               />
-            </div>
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                สี (Color)
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg"
+              <FormInput
+                label="สี"
+                name="color"
                 value={formData.color}
-                onChange={(e) =>
-                  setFormData({ ...formData, color: e.target.value })
-                }
+                onChange={handleChange}
               />
             </div>
-          </div>
-        </div>
 
-        {/* Section 2: Dates & Staff */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
-            <Calendar className="text-orange-500" /> วันที่และผู้รับผิดชอบ
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                วันที่เริ่มงาน
-              </label>
-              <input
-                type="date"
-                className="w-full p-2 border rounded-lg"
-                value={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                วันประเมินงานเสร็จ
-              </label>
-              <input
-                type="date"
-                className="w-full p-2 border rounded-lg"
-                value={formData.estimatedEndDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, estimatedEndDate: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                พนักงานรับรถ
-              </label>
-              <div className="relative">
-                <User
-                  className="absolute left-3 top-2.5 text-slate-400"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  className="w-full pl-9 p-2 border rounded-lg"
-                  value={formData.receiverName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, receiverName: e.target.value })
-                  }
-                  placeholder="ชื่อพนักงาน"
-                />
-              </div>
-            </div>
+            <FormInput
+              label="ประเภทรถ"
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+              placeholder="เช่น เก๋ง, กระบะ"
+            />
           </div>
-        </div>
+        </section>
 
-        {/* Section 3: Payment */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
-            <CreditCard className="text-purple-500" /> รูปแบบการชำระเงิน
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
-                ประเภทการเคลม
-              </label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, paymentType: "Insurance" })
-                  }
-                  className={`flex-1 py-3 rounded-lg border-2 flex items-center justify-center gap-2 ${
+        <section className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+          <div className="flex items-center gap-2 mb-4 text-blue-600">
+            <Wrench size={20} />
+            <h3 className="font-semibold">รายละเอียดการซ่อม</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="วันที่เริ่มงาน"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleChange}
+              type="date"
+            />
+            <FormInput
+              label="ประเมินวันเสร็จ"
+              name="estimatedEndDate"
+              value={formData.estimatedEndDate}
+              onChange={handleChange}
+              type="date"
+            />
+
+            <FormInput
+              label="คนรับรถ"
+              name="receiver"
+              value={formData.receiver}
+              onChange={handleChange}
+            />
+            <FormInput
+              label="ค่าความเสียหายส่วนแรก"
+              name="excessFee"
+              value={formData.excessFee}
+              onChange={handleChange}
+              type="number"
+              onFocus={(e) => e.target.select()}
+            />
+          </div>
+        </section>
+
+        <div className="col-span-1 md:col-span-2">
+          <section className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+            <div className="flex items-center gap-2 mb-2 text-blue-600">
+              <CreditCard size={20} />
+              <h3 className="font-semibold">รูปแบบการชำระเงิน</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex gap-4 col-span-1 md:col-span-2">
+                <label
+                  className={`flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-slate-50 w-full transition-all ${
                     formData.paymentType === "Insurance"
-                      ? "border-purple-500 bg-purple-50 text-purple-700 font-bold"
-                      : "border-slate-200 text-slate-500"
+                      ? "border-green-500 bg-green-50"
+                      : "border-slate-200"
                   }`}
                 >
-                  <FileText size={20} /> เคลมประกัน
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, paymentType: "Cash" })
-                  }
-                  className={`flex-1 py-3 rounded-lg border-2 flex items-center justify-center gap-2 ${
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="Insurance"
+                    checked={formData.paymentType === "Insurance"}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="font-medium text-slate-700">
+                    ประกันภัย (เคลม)
+                  </span>
+                </label>
+
+                <label
+                  className={`flex items-center gap-2 border p-3 rounded-lg cursor-pointer hover:bg-slate-50 w-full transition-all ${
                     formData.paymentType === "Cash"
-                      ? "border-green-500 bg-green-50 text-green-700 font-bold"
-                      : "border-slate-200 text-slate-500"
+                      ? "border-green-500 bg-green-50"
+                      : "border-slate-200"
                   }`}
                 >
-                  <DollarSign size={20} /> เงินสด
-                </button>
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    value="Cash"
+                    checked={formData.paymentType === "Cash"}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="font-medium text-slate-700">เงินสด</span>
+                </label>
               </div>
+
+              {formData.paymentType === "Insurance" && (
+                <div className="col-span-1 md:col-span-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <FormInput
+                    label="ชื่อบริษัทประกันภัย"
+                    name="insuranceCompany"
+                    value={formData.insuranceCompany || ""}
+                    onChange={handleChange}
+                    placeholder="ระบุชื่อบริษัทประกันภัย"
+                    required={formData.paymentType === "Insurance"}
+                  />
+                </div>
+              )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                ค่าเสียหายส่วนแรก (Excess)
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2 text-slate-400 font-bold">
-                  ฿
-                </span>
-                <input
-                  type="number"
-                  className="w-full pl-8 p-2 border rounded-lg"
-                  value={formData.excessCost}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      excessCost: Number(e.target.value),
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </div>
+          </section>
         </div>
 
-        {/* Section 4: Customer Info */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
-            <User className="text-green-600" /> ข้อมูลลูกค้า
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                ชื่อ-นามสกุล
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-lg"
-                value={formData.customerName}
-                onChange={(e) =>
-                  setFormData({ ...formData, customerName: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                เบอร์โทรศัพท์
-              </label>
-              <div className="relative">
-                <Phone
-                  className="absolute left-3 top-2.5 text-slate-400"
-                  size={16}
-                />
-                <input
-                  type="tel"
-                  className="w-full pl-9 p-2 border rounded-lg"
-                  value={formData.customerPhone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, customerPhone: e.target.value })
-                  }
-                />
-              </div>
-            </div>
+        <section className="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+          <div className="flex items-center gap-2 mb-4 text-blue-600">
+            <User size={20} />
+            <h3 className="font-semibold text-lg">ข้อมูลลูกค้า</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="ชื่อ-นามสกุล ลูกค้า"
+              name="customerName"
+              value={formData.customerName}
+              onChange={handleChange}
+              placeholder="ระบุชื่อผู้ติดต่อ"
+            />
+            <FormInput
+              label="เบอร์โทรศัพท์"
+              name="customerPhone"
+              value={formData.customerPhone}
+              onChange={handleChange}
+              placeholder="08X-XXX-XXXX"
+            />
+
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                ที่อยู่
-              </label>
-              <textarea
-                className="w-full p-2 border rounded-lg"
-                rows={2}
+              <FormInput
+                label="ที่อยู่"
+                name="customerAddress"
                 value={formData.customerAddress}
-                onChange={(e) =>
-                  setFormData({ ...formData, customerAddress: e.target.value })
-                }
+                onChange={handleChange}
+                placeholder="บ้านเลขที่, ถนน, ตำบล, อำเภอ, จังหวัด"
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="flex justify-end space-x-4 pt-4">
+        <div className="col-span-1 md:col-span-2 pt-4 flex justify-end gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="px-8 py-3 rounded-xl border border-slate-300"
+            className="px-6 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50"
           >
             ยกเลิก
           </button>
           <button
-            type="button"
-            onClick={handleSubmit}
-            className="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold flex items-center gap-2 shadow-lg hover:bg-blue-700 transition"
+            type="submit"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md"
           >
-            <Save size={20} /> บันทึกและเริ่มงาน
+            บันทึกรับรถ
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

@@ -1,166 +1,175 @@
-import React from "react";
 import { useNavigate } from "react-router";
-import {
-  Car,
-  ClipboardCheck,
-  Wrench,
-  FileText,
-  CheckCircle2,
-  LayoutDashboard,
-  ArrowRight,
-} from "lucide-react";
+import { Search, ChevronDown, MoreVertical, ArrowUpDown } from "lucide-react";
 import { type Job } from "../Type";
-
-interface StatCardProps {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  color: string;
-}
-
-function StatCard({ title, value, icon, color }: StatCardProps) {
-  return (
-    <div className={`${color} text-white p-4 rounded-xl shadow-md`}>
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-xs opacity-80 mb-1">{title}</p>
-          <h3 className="text-2xl font-bold">{value}</h3>
-        </div>
-        <div className="opacity-50">{icon}</div>
-      </div>
-    </div>
-  );
-}
 
 export default function Dashboard({ jobs }: { jobs: Job[] }) {
   const navigate = useNavigate();
-  const stats = {
-    total: jobs.length,
-    claim: jobs.filter((j) => j.currentStageIndex === 0).length,
-    repair: jobs.filter((j) => j.currentStageIndex === 1).length,
-    billing: jobs.filter((j) => j.currentStageIndex === 2 && !j.isFinished)
-      .length,
-    finished: jobs.filter((j) => j.isFinished).length,
+
+  const getStatusStyle = (job: Job) => {
+    if (job.isFinished) return "bg-green-100 text-green-700";
+    if (job.currentStageIndex === 0) return "bg-blue-100 text-blue-700";
+    if (job.currentStageIndex === 1) return "bg-orange-100 text-orange-700";
+    return "bg-yellow-100 text-yellow-700";
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-        <LayoutDashboard className="text-blue-600" /> แดชบอร์ดภาพรวม
-      </h2>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard
-          title="รถทั้งหมด"
-          value={stats.total}
-          icon={<Car />}
-          color="bg-slate-600"
-        />
-        <StatCard
-          title="ขั้นตอนเคลม"
-          value={stats.claim}
-          icon={<ClipboardCheck />}
-          color="bg-blue-500"
-        />
-        <StatCard
-          title="ขั้นตอนซ่อม"
-          value={stats.repair}
-          icon={<Wrench />}
-          color="bg-orange-500"
-        />
-        <StatCard
-          title="ขั้นตอนตั้งเบิก"
-          value={stats.billing}
-          icon={<FileText />}
-          color="bg-purple-500"
-        />
-        <StatCard
-          title="เสร็จสิ้น"
-          value={stats.finished}
-          icon={<CheckCircle2 />}
-          color="bg-green-500"
-        />
+    <div className="bg-white min-h-screen p-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-800 mb-1">สเตชั่น</h1>
+        <p className="text-slate-500 text-sm">ระบุรายละเอียดการรับรถใหม่</p>
       </div>
 
-
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-4 border-b border-slate-100 bg-slate-50 font-semibold text-slate-700">
-          รายการรถในอู่ล่าสุด
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <div className="relative w-full md:w-96">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+            placeholder="ค้นหาทะเบียนรถ / เลขตัวถัง"
+          />
         </div>
-        <div className="divide-y divide-slate-100">
-          {jobs.length === 0 ? (
-            <div className="p-8 text-center text-slate-400">
-              ไม่มีรายการรถในระบบ
-            </div>
-          ) : (
-            jobs.map((job) => (
-              <div
-                key={job.id}
-                className="p-4 hover:bg-slate-50 transition-colors flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold
-                    ${
-                      job.isFinished
-                        ? "bg-green-500"
-                        : job.currentStageIndex === 0
-                        ? "bg-blue-500"
-                        : job.currentStageIndex === 1
-                        ? "bg-orange-500"
-                        : "bg-purple-500"
-                    }
-                  `}
-                  >
-                    {job.registration.substring(0, 2)}
-                  </div>
-                  <div>
-                    <div className="font-bold text-lg text-slate-800">
-                      {job.registration}{" "}
-                      <span className="text-sm font-normal text-slate-500">
-                        ({job.brand} {job.model})
-                      </span>
-                    </div>
-                    <div className="text-sm text-slate-500 flex gap-2">
-                      <span>เลขถัง: {job.bagNumber}</span>
-                      <span>•</span>
-                      <span>{job.paymentType}</span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                  <div className="text-right">
+        <div className="flex gap-3 w-full md:w-auto">
+          <button className="flex items-center justify-between px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 bg-white hover:bg-slate-50 min-w-35">
+            <span>ประเภทรถ</span>
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          </button>
+          <button className="flex items-center justify-between px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 bg-white hover:bg-slate-50 min-w-35">
+            <span>สถานะ</span>
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50">
+            <tr>
+              <th
+                scope="col"
+                className="px-6 py-4 text-left text-sm font-medium text-slate-500 uppercase tracking-wider"
+              >
+                <div className="flex items-center gap-2 cursor-pointer">
+                  ทะเบียนรถ <ArrowUpDown className="h-3 w-3" />
+                </div>
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-4 text-left text-sm font-medium text-slate-500 uppercase tracking-wider"
+              >
+                <div className="flex items-center gap-2 cursor-pointer">
+                  ชื่อ-นามสกุล <ArrowUpDown className="h-3 w-3" />
+                </div>
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-4 text-left text-sm font-medium text-slate-500 uppercase tracking-wider"
+              >
+                เบอร์โทรศัพท์
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-4 text-left text-sm font-medium text-slate-500 uppercase tracking-wider"
+              >
+                ประเภทรถ
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-4 text-left text-sm font-medium text-slate-500 uppercase tracking-wider"
+              >
+                สถานะ
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-4 text-left text-sm font-medium text-slate-500 uppercase tracking-wider"
+              >
+                <div className="flex items-center gap-2 cursor-pointer">
+                  วันที่เข้าจอดซ่อม <ArrowUpDown className="h-3 w-3" />
+                </div>
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-4 text-left text-sm font-medium text-slate-500 uppercase tracking-wider"
+              >
+                <div className="flex items-center gap-2 cursor-pointer">
+                  วันที่นัดรับรถ <ArrowUpDown className="h-3 w-3" />
+                </div>
+              </th>
+              <th scope="col" className="relative px-6 py-3">
+                <span className="sr-only">Edit</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-200">
+            {jobs.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={8}
+                  className="px-6 py-12 text-center text-slate-400"
+                >
+                  ไม่มีรายการรถในระบบ
+                </td>
+              </tr>
+            ) : (
+              jobs.map((job) => (
+                <tr
+                  key={job.id}
+                  className="hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/job/${job.id}`)}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                    {job.registration}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    {job.customerName || "ไม่ระบุชื่อ"}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                    {job.customerPhone || "-"}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    {job.brand} {job.model}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold
-                        ${
-                          job.isFinished
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }
-                      `}
+                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(
+                        job
+                      )}`}
                     >
                       {job.isFinished
                         ? "จบงานแล้ว"
-                        : job.stages[job.currentStageIndex].name}
+                        : job.stages[job.currentStageIndex]?.name ||
+                          "รอดำเนินการ"}
                     </span>
-                    <div className="text-xs text-slate-400 mt-1">
-                      รับรถ:{" "}
-                      {new Date(job.startDate).toLocaleDateString("th-TH")}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => navigate(`/job/${job.id}`)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                  >
-                    <ArrowRight />
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    {new Date(job.startDate).toLocaleDateString("th-TH")}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    {job.estimatedEndDate
+                      ? new Date(job.estimatedEndDate).toLocaleDateString(
+                          "th-TH"
+                        )
+                      : "-"}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button className="text-slate-400 hover:text-slate-600">
+                      <MoreVertical className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
