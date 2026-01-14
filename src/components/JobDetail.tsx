@@ -1,7 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft, Car, Edit2 } from "lucide-react";
 import { type Job } from "../Type";
-import { InfoItem } from "../components/SharedComponents";
+// import { InfoItem } from "../components/SharedComponents";
+const InfoItem = ({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | number | null;
+}) => (
+  <div className="flex justify-between items-start py-1 border-b border-slate-50 last:border-0">
+    <span className="text-slate-500 text-sm min-w-25">{label}</span>
+    <span className="text-slate-900 font-medium text-sm text-right wrap-break-words max-w-50">
+      {value || "-"}
+    </span>
+  </div>
+);
+
+interface JobDetailPageProps {
+  job: Job;
+}
 
 interface JobDetailPageProps {
   job: Job;
