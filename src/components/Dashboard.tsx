@@ -140,17 +140,18 @@ export default function Dashboard({ jobs, onResetData }: { jobs: Job[]; onResetD
     return { label: "ตั้งเบิก", className: "bg-amber-50 text-amber-600" };
   };
 
-  const totalJobs = jobs.length;
-  const claimJobs = jobs.filter(
+  // Calculate summary based on filtered data
+  const totalJobs = displayJobs.length;
+  const claimJobs = displayJobs.filter(
     (j) => !j.isFinished && j.currentStageIndex === 0
   ).length;
-  const repairJobs = jobs.filter(
+  const repairJobs = displayJobs.filter(
     (j) => !j.isFinished && j.currentStageIndex === 1
   ).length;
-  const billingJobs = jobs.filter(
+  const billingJobs = displayJobs.filter(
     (j) => !j.isFinished && j.currentStageIndex === 2
   ).length;
-  const finishedJobs = jobs.filter((j) => j.isFinished).length;
+  const finishedJobs = displayJobs.filter((j) => j.isFinished).length;
 
   const summaryCards = [
     {
