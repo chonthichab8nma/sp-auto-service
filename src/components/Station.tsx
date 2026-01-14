@@ -3,13 +3,21 @@ import { Search, ChevronDown, MoreVertical, ArrowUpDown } from "lucide-react";
 import { type Job } from "../Type";
 import { filterData } from "../hook/useSearch";
 import { useMemo, useState } from "react";
+import { CAR_TYPES, INITIAL_STAGES } from "../data";
 
 export default function Station({ jobs }: { jobs: Job[] }) {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCarType, setSelectedCarType] = useState("ทั้งหมด");
+  const [selectedStatus, setSelectedStatus] = useState("ทั้งหมด");
+
+  const allStatusOptions = useMemo(() => {
+    return ["ทั้งหมด", ...INITIAL_STAGES.map(s => s.name), "เสร็จสิ้น"];
+  }, []);
+
   const filteredJobs = useMemo(() => {
-    return filterData(jobs, searchTerm);
-  }, [jobs, searchTerm]);
+    return filterData(jobs, searchTerm, selectedCarType, undefined, undefined, selectedStatus);
+  }, [jobs, searchTerm, selectedCarType, selectedStatus]);
 
   const handleSearchAction = () => {
     console.log("User submitted search:", searchTerm);
@@ -18,18 +26,18 @@ export default function Station({ jobs }: { jobs: Job[] }) {
     }
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearchAction();
     }
   };
 
- const getStatusStyle = (job: Job) => {
+  const getStatusStyle = (job: Job) => {
     if (job.isFinished) {
       return "bg-[#ecfdf3] text-[#1fc16b]";
     }
-    if (job.currentStageIndex === 0) return "bg-blue-100 text-blue-700";
-    if (job.currentStageIndex === 1) return "bg-orange-100 text-orange-700";
-    return "bg-yellow-100 text-yellow-700";
+    if (job.currentStageIndex === 0) return "bg-blue-50 text-blue-700";
+    if (job.currentStageIndex === 1) return "bg-orange-50 text-[#fa731a]";
+    return "bg-yellow-50 text-[#f6b51e]";
   };
 
   return (
@@ -51,12 +59,12 @@ export default function Station({ jobs }: { jobs: Job[] }) {
               placeholder="ค้นหาทะเบียนรถ / เลขตัวถัง / ชื่อลูกค้า"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={handleKeyDown} // เพิ่ม handleKeyDown
+              onKeyDown={handleKeyDown} 
             />
           </div>
-          
-          {/* ปุ่มค้นหา (เพิ่มเข้ามาให้เหมือน Dashboard) */}
-          <button 
+
+     
+          <button
             onClick={handleSearchAction}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-[#435EBE] hover:bg-[#3950a3] text-white rounded-lg text-sm font-medium transition-all shadow-sm"
           >
@@ -66,14 +74,37 @@ export default function Station({ jobs }: { jobs: Job[] }) {
         </div>
 
         <div className="flex gap-3 w-full md:w-auto">
-          <button className="flex items-center justify-between px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 bg-white hover:bg-slate-50 min-w-35">
-            <span>ประเภทรถ</span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
-          </button>
-          <button className="flex items-center justify-between px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 bg-white hover:bg-slate-50 min-w-35">
-            <span>สถานะ</span>
-            <ChevronDown className="h-4 w-4 text-slate-400" />
-          </button>
+          <div className="relative">
+            <select
+              value={selectedCarType}
+              onChange={(e) => setSelectedCarType(e.target.value)}
+              className="appearance-none pl-4 pr-10 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 bg-white hover:bg-slate-50 outline-none cursor-pointer min-w-35.7"
+            >
+              <option value="ทั้งหมด">ประเภทรถ</option>
+              {CAR_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          </div>
+
+          <div className="relative">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="appearance-none pl-4 pr-10 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 bg-white hover:bg-slate-50 outline-none cursor-pointer min-w-35"
+            >
+              <option value="ทั้งหมด">สถานะ</option>
+              {allStatusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -166,7 +197,7 @@ export default function Station({ jobs }: { jobs: Job[] }) {
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                    {job.brand} {job.model}
+                    {job.type}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -176,7 +207,7 @@ export default function Station({ jobs }: { jobs: Job[] }) {
                       )}`}
                     >
                       {job.isFinished
-                        ? "จบงานแล้ว"
+                        ? "เสร็จสิ้น"
                         : job.stages[job.currentStageIndex]?.name ||
                           "รอดำเนินการ"}
                     </span>

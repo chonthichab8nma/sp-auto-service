@@ -10,7 +10,7 @@ export const YEARS = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2
 export const INITIAL_STAGES: Stage[] = [
   { id: "claim", name: "เคลม", isLocked: false, isCompleted: false, steps: CLAIM_STEPS.map((name, idx) => ({ id: `c-${idx}`, name, status: "pending" })) },
   { id: "repair", name: "ซ่อม", isLocked: true, isCompleted: false, steps: REPAIR_STEPS.map((name, idx) => ({ id: `r-${idx}`, name, status: "pending" })) },
-  { id: "billing", name: "เบิก", isLocked: true, isCompleted: false, steps: BILLING_STEPS.map((name, idx) => ({ id: `b-${idx}`, name, status: "pending" })) },
+  { id: "billing", name: "ตั้งเบิก", isLocked: true, isCompleted: false, steps: BILLING_STEPS.map((name, idx) => ({ id: `b-${idx}`, name, status: "pending" })) },
 ];
 
 export const MOCK_JOBS: Job[] = [

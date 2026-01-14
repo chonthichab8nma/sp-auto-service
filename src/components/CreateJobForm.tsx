@@ -3,12 +3,7 @@ import React, { useState } from "react";
 import { type JobFormData } from "../Type";
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
-import { 
-  CAR_TYPES, 
-  CAR_BRANDS, 
-  CAR_MODELS, 
-  YEARS 
-} from "../data";
+import { CAR_TYPES, CAR_BRANDS, CAR_MODELS, YEARS } from "../data";
 interface CreateJobFormProps {
   onCancel: () => void;
   onSubmit: (data: JobFormData) => void;
@@ -52,9 +47,29 @@ export default function CreateJobForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.registration || !formData.brand)
+
+    if (!formData.registration || !formData.brand) {
       return alert("กรุณากรอกข้อมูลสำคัญ");
-    onSubmit(formData);
+    }
+
+    const fixDateToAD = (dateString: string) => {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+
+      if (date.getFullYear() > 2400) {
+        date.setFullYear(date.getFullYear() - 543);
+      }
+
+      return date.toISOString().split("T")[0];
+    };
+
+    const finalData = {
+      ...formData,
+      startDate: fixDateToAD(formData.startDate),
+      estimatedEndDate: fixDateToAD(formData.estimatedEndDate),
+    };
+
+    onSubmit(finalData);
   };
 
   return (
@@ -183,13 +198,13 @@ export default function CreateJobForm({
 
             <div className="md:col-span-3 pt-2">
               <FormInput
-              label={<LabelWithStar text="เจ้าหน้าที่รับรถ" />}
-              name="receiver"
-              value={formData.receiver}
-              onChange={handleChange}
-              type="text"
-              required
-            />
+                label={<LabelWithStar text="เจ้าหน้าที่รับรถ" />}
+                name="receiver"
+                value={formData.receiver}
+                onChange={handleChange}
+                type="text"
+                required
+              />
               {/* <div className="flex items-center gap-2 text-sm">
                 <span className="text-slate-500">เจ้าหน้าที่รับรถ:</span>
                 <span className="text-slate-800 font-medium">

@@ -26,17 +26,39 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCarType, setSelectedCarType] = useState("ทั้งหมด");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("ทั้งหมด");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const datePickerRef = useRef<HTMLDivElement>(null);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
 
   const displayJobs = useMemo(() => {
-    let data = filterData(jobs, searchTerm);
+    return filterData(
+      jobs,
+      searchTerm,
+      selectedCarType,
+      startDate,
+      endDate,
+      selectedStatus
+    );
+  }, [jobs, searchTerm, selectedCarType, startDate, endDate, selectedStatus]);
 
-    if (selectedCarType !== "ทั้งหมด") {
-      data = data.filter((job) => job.type === selectedCarType);
+  const totalPages = Math.ceil(displayJobs.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = displayJobs.slice(indexOfFirstItem, indexOfLastItem);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
     }
-
-    return data;
-  }, [jobs, searchTerm, selectedCarType]);
+    return pages;
+  };
 
   const handleSearchAction = () => {
     console.log("User submitted search:", searchTerm);
@@ -60,6 +82,12 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
       ) {
         setIsTypeDropdownOpen(false);
       }
+      if (
+        datePickerRef.current &&
+        !datePickerRef.current.contains(event.target as Node)
+      ) {
+        setShowDatePicker(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -72,30 +100,36 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
         className: "bg-emerald-50 text-emerald-600",
       };
     }
-    if (job.currentStageIndex === 0) {
+
+    const currentStatus =
+      job.stages[job.currentStageIndex]?.name || "รอดำเนินการ";
+
+    if (currentStatus === "เคลม")
       return { label: "เคลม", className: "bg-blue-50 text-blue-600" };
-    }
-    if (job.currentStageIndex === 1) {
-      return { label: "ซ่อม", className: "bg-orange-50 text-orange-600" };
-    }
-    return { label: "ตั้งเบิก", className: "bg-amber-50 text-amber-600" };
+    if (currentStatus === "ซ่อม")
+      return { label: "ซ่อม", className: "bg-orange-50 text-[#fa731a]" };
+    if (currentStatus === "ตั้งเบิก")
+      return { label: "ตั้งเบิก", className: "bg-yellow-50 text-[#f6b51e]" };
+
+    return { label: currentStatus, className: "bg-slate-50 text-slate-600" };
   };
 
   const totalJobs = jobs.length;
   const claimJobs = jobs.filter(
-    (j) => !j.isFinished && j.currentStageIndex === 0
+    (j) => !j.isFinished && j.stages[j.currentStageIndex]?.name === "เคลม"
   ).length;
   const repairJobs = jobs.filter(
-    (j) => !j.isFinished && j.currentStageIndex === 1
+    (j) => !j.isFinished && j.stages[j.currentStageIndex]?.name === "ซ่อม"
   ).length;
   const billingJobs = jobs.filter(
-    (j) => !j.isFinished && j.currentStageIndex === 2
+    (j) => !j.isFinished && j.stages[j.currentStageIndex]?.name === "ตั้งเบิก"
   ).length;
   const finishedJobs = jobs.filter((j) => j.isFinished).length;
 
   const summaryCards = [
     {
       label: "รถทั้งหมด",
+      statusValue: "ทั้งหมด",
       value: totalJobs,
       icon: Car,
       bg: "bg-blue-50",
@@ -104,6 +138,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
     },
     {
       label: "ขั้นตอนเคลม",
+      statusValue: "เคลม",
       value: claimJobs,
       icon: FileText,
       bg: "bg-rose-50",
@@ -112,6 +147,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
     },
     {
       label: "ขั้นตอนซ่อม",
+      statusValue: "ซ่อม",
       value: repairJobs,
       icon: Wrench,
       bg: "bg-orange-50",
@@ -120,6 +156,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
     },
     {
       label: "ขั้นตอนตั้งเบิก",
+      statusValue: "ตั้งเบิก",
       value: billingJobs,
       icon: Receipt,
       bg: "bg-amber-50",
@@ -128,6 +165,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
     },
     {
       label: "รถที่เสร็จสิ้น",
+      statusValue: "เสร็จสิ้น",
       value: finishedJobs,
       icon: CheckCircle2,
       bg: "bg-emerald-50",
@@ -214,14 +252,61 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
             )}
           </div>
 
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 relative" ref={datePickerRef}>
             <label className="text-sm font-semibold text-slate-700 block mb-2">
               เลือกวันที่
             </label>
-            <button className="w-full flex items-center justify-between border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-600 bg-white hover:bg-slate-50 transition-colors">
-              <span>10/10/2025 - 11/10/2025</span>
+            <button
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              className="w-full flex items-center justify-between border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-600 bg-white hover:bg-slate-50 transition-colors"
+            >
+              <span>
+                {startDate || endDate
+                  ? `${
+                      startDate
+                        ? new Date(startDate).toLocaleDateString("th-TH")
+                        : "..."
+                    } - ${
+                      endDate
+                        ? new Date(endDate).toLocaleDateString("th-TH")
+                        : "..."
+                    }`
+                  : "เลือกช่วงวันที่"}
+              </span>
               <Calendar className="h-4 w-4 text-slate-400" />
             </button>
+
+            {showDatePicker && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg p-4 z-50 flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-500">เริ่มวันที่</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="border rounded-lg p-2 text-sm"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-500">ถึงวันที่</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="border rounded-lg p-2 text-sm"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                  }}
+                  className="text-xs text-blue-600 hover:underline self-end"
+                >
+                  ล้างค่าวันที่
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-2">
@@ -238,10 +323,16 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
         <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-5">
           {summaryCards.map((card) => {
             const Icon = card.icon;
+            const isActive = selectedStatus === card.statusValue;
             return (
               <div
                 key={card.label}
-                className="flex items-center gap-4 border border-slate-100 rounded-2xl bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+                onClick={() => setSelectedStatus(card.statusValue)}
+                className={`flex items-center gap-4 border rounded-2xl p-4 shadow-sm transition-all cursor-pointer hover:shadow-md active:scale-95 ${
+                  isActive
+                    ? "border-blue-500 ring-2 ring-blue-500/10 bg-blue-50/10"
+                    : "border-slate-100 bg-white"
+                }`}
               >
                 <div
                   className={`flex items-center justify-center rounded-xl ${card.bg} h-12 w-12 shrink-0`}
@@ -260,7 +351,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
             );
           })}
         </div>
-        
+
         <div>
           <h2 className="text-[17px] font-semibold text-slate-800 mb-5">
             รายการรถในอู่
@@ -294,7 +385,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-50">
-                {displayJobs.length === 0 ? (
+                {currentItems.length === 0 ? (
                   <tr>
                     <td
                       colSpan={8}
@@ -304,7 +395,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
                     </td>
                   </tr>
                 ) : (
-                  displayJobs.map((job) => {
+                  currentItems.map((job) => {
                     const status = getStatusStyle(job);
                     return (
                       <tr
@@ -332,12 +423,12 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
                           </span>
                         </td>
                         <td className="px-5 py-4 text-[14px] text-slate-600">
-                          {new Date(job.startDate).toLocaleDateString("th-TH")}
+                          {new Date(job.startDate).toLocaleDateString("en-GB")}
                         </td>
                         <td className="px-5 py-4 text-[14px] text-slate-600">
                           {job.estimatedEndDate
                             ? new Date(job.estimatedEndDate).toLocaleDateString(
-                                "th-TH"
+                                "en-GB"
                               )
                             : "-"}
                         </td>
@@ -356,19 +447,31 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
         </div>
 
         <div className="flex items-center justify-center gap-2 mt-4">
-          <button className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30">
+
+          <button
+            onClick={() => setCurrentPage(1)}
+            disabled={currentPage === 1}
+            className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             <ChevronsLeft size={18} />
           </button>
-          <button className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30">
+
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             <ChevronLeft size={18} />
           </button>
+
           <div className="flex items-center gap-1.5 mx-2">
-            {[1, 2, 3, 4, 5, "...", 16].map((p, i) => (
+            {getPageNumbers().map((p) => (
               <button
-                key={i}
+                key={p}
+                onClick={() => setCurrentPage(p)}
                 className={`w-9 h-9 rounded-[10px] text-sm font-medium transition-all border ${
-                  p === 2
-                    ? "bg-[#F0F5FF] text-blue-600 border-blue-100"
+                  p === currentPage
+                    ? "bg-[#F0F5FF] text-blue-600 border-blue-100 shadow-sm"
                     : "bg-white text-slate-500 border-slate-100 hover:bg-slate-50"
                 }`}
               >
@@ -376,10 +479,22 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
               </button>
             ))}
           </div>
-          <button className="p-2 text-slate-400 hover:text-slate-600">
+
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             <ChevronRight size={18} />
           </button>
-          <button className="p-2 text-slate-400 hover:text-slate-600">
+
+          <button
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             <ChevronsRight size={18} />
           </button>
         </div>

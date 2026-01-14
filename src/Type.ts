@@ -43,9 +43,3 @@ export interface Job extends JobFormData {
   isFinished: boolean;
 }
 
-// export interface CarData {
-//   id: number;
-//   plate: string;    
-//   chassis: string;  
-//   brand: string;   
-// }
