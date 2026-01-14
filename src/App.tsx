@@ -111,6 +111,15 @@ function App() {
     navigate("/");
   };
 
+  // Reset data to mock jobs
+  const handleResetData = () => {
+    if (confirm("คุณต้องการล้างข้อมูลทั้งหมดและโหลดข้อมูลจำลองใหม่หรือไม่?")) {
+      localStorage.removeItem("job_form");
+      setJobs(MOCK_JOBS);
+      console.log(`Reset to ${MOCK_JOBS.length} mock jobs`);
+    }
+  };
+
   const handleCreateJob = (formData: JobFormData) => {
     const newStages = INITIAL_STAGES.map((stage) => ({
       ...stage,
@@ -194,9 +203,9 @@ function App() {
         <div className="p-4 md:p-10 font-sans">
           <Routes>
             {/* หน้าแรกเป็น Dashboard */}
-            <Route path="/" element={<Dashboard jobs={jobs} />} />
+            <Route path="/" element={<Dashboard jobs={jobs} onResetData={handleResetData} />} />
 
-            <Route path="/stations" element={<Station jobs={jobs} />} />
+            <Route path="/stations" element={<Station jobs={jobs} onResetData={handleResetData} />} />
 
             <Route
               path="/create"

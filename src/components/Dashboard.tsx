@@ -13,6 +13,7 @@ import {
   FileText,
   MoreVertical,
   Receipt,
+  RotateCcw,
   Search,
   Wrench,
   Check,
@@ -21,12 +22,17 @@ import { type Job } from "../Type";
 import { filterData } from "../hook/useSearch";
 import { CAR_TYPES } from "../data";
 
-export default function Dashboard({ jobs }: { jobs: Job[] }) {
+export default function Dashboard({ jobs, onResetData }: { jobs: Job[]; onResetData?: () => void }) {
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCarType, setSelectedCarType] = useState("ทั้งหมด");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const displayJobs = useMemo(() => {
     let data = filterData(jobs, searchTerm);
@@ -35,8 +41,54 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
       data = data.filter((job) => job.type === selectedCarType);
     }
 
+    if (startDate) {
+      data = data.filter((job) => {
+        const jobDate = new Date(job.startDate);
+        const filterDate = new Date(startDate);
+        return jobDate >= filterDate;
+      });
+    }
+
+    if (endDate) {
+      data = data.filter((job) => {
+        const jobDate = new Date(job.startDate);
+        const filterDate = new Date(endDate);
+        return jobDate <= filterDate;
+      });
+    }
+
     return data;
-  }, [jobs, searchTerm, selectedCarType]);
+  }, [jobs, searchTerm, selectedCarType, startDate, endDate]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(displayJobs.length / itemsPerPage);
+  const paginatedJobs = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return displayJobs.slice(startIndex, endIndex);
+  }, [displayJobs, currentPage, itemsPerPage]);
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        pages.push(1, 2, 3, 4, "...", totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+      }
+    }
+
+    return pages;
+  };
 
   const handleSearchAction = () => {
     console.log("User submitted search:", searchTerm);
@@ -52,6 +104,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
   };
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const datePickerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -59,6 +112,12 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsTypeDropdownOpen(false);
+      }
+      if (
+        datePickerRef.current &&
+        !datePickerRef.current.contains(event.target as Node)
+      ) {
+        setShowDatePicker(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -138,8 +197,17 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
 
   return (
     <div className="flex flex-col gap-5 p-2">
-      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 px-8 py-6">
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 px-8 py-6 flex justify-between items-center">
         <h1 className="text-[22px] font-semibold text-slate-800">แดชบอร์ด</h1>
+        {onResetData && (
+          <button
+            onClick={onResetData}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-sm font-medium transition-all border border-amber-200"
+          >
+            <RotateCcw className="h-4 w-4" />
+            สร้างข้อมูลจำลอง 120 รายการ
+          </button>
+        )}
       </section>
 
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col gap-10">
@@ -214,14 +282,85 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
             )}
           </div>
 
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 relative" ref={datePickerRef}>
             <label className="text-sm font-semibold text-slate-700 block mb-2">
               เลือกวันที่
             </label>
-            <button className="w-full flex items-center justify-between border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-600 bg-white hover:bg-slate-50 transition-colors">
-              <span>10/10/2025 - 11/10/2025</span>
+            <button
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              className={`w-full flex items-center justify-between border rounded-xl px-4 py-2.5 text-sm bg-white transition-colors ${
+                showDatePicker || startDate || endDate
+                  ? "border-blue-500 text-blue-700"
+                  : "border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              <span>
+                {startDate && endDate
+                  ? `${new Date(startDate).toLocaleDateString("th-TH", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })} - ${new Date(endDate).toLocaleDateString("th-TH", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })}`
+                  : startDate
+                  ? new Date(startDate).toLocaleDateString("th-TH", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    })
+                  : "เลือกวันที่"}
+              </span>
               <Calendar className="h-4 w-4 text-slate-400" />
             </button>
+
+            {showDatePicker && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg p-4 z-50">
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      วันที่เริ่มต้น
+                    </label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      วันที่สิ้นสุด
+                    </label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        setStartDate("");
+                        setEndDate("");
+                      }}
+                      className="flex-1 px-4 py-2.5 text-sm border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors"
+                    >
+                      ล้าง
+                    </button>
+                    <button
+                      onClick={() => setShowDatePicker(false)}
+                      className="flex-1 px-4 py-2.5 text-sm bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                    >
+                      ตกลง
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-2">
@@ -294,7 +433,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-50">
-                {displayJobs.length === 0 ? (
+                {paginatedJobs.length === 0 ? (
                   <tr>
                     <td
                       colSpan={8}
@@ -304,7 +443,7 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
                     </td>
                   </tr>
                 ) : (
-                  displayJobs.map((job) => {
+                  paginatedJobs.map((job) => {
                     const status = getStatusStyle(job);
                     return (
                       <tr
@@ -355,34 +494,54 @@ export default function Dashboard({ jobs }: { jobs: Job[] }) {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <button className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30">
-            <ChevronsLeft size={18} />
-          </button>
-          <button className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30">
-            <ChevronLeft size={18} />
-          </button>
-          <div className="flex items-center gap-1.5 mx-2">
-            {[1, 2, 3, 4, 5, "...", 16].map((p, i) => (
-              <button
-                key={i}
-                className={`w-9 h-9 rounded-[10px] text-sm font-medium transition-all border ${
-                  p === 2
-                    ? "bg-[#F0F5FF] text-blue-600 border-blue-100"
-                    : "bg-white text-slate-500 border-slate-100 hover:bg-slate-50"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:hover:text-slate-400"
+            >
+              <ChevronsLeft size={18} />
+            </button>
+            <button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:hover:text-slate-400"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <div className="flex items-center gap-1.5 mx-2">
+              {getPageNumbers().map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => typeof p === "number" && setCurrentPage(p)}
+                  disabled={p === "..."}
+                  className={`w-9 h-9 rounded-[10px] text-sm font-medium transition-all border ${
+                    p === currentPage
+                      ? "bg-[#F0F5FF] text-blue-600 border-blue-100"
+                      : "bg-white text-slate-500 border-slate-100 hover:bg-slate-50"
+                  } ${p === "..." ? "cursor-default" : ""}`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:hover:text-slate-400"
+            >
+              <ChevronRight size={18} />
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:hover:text-slate-400"
+            >
+              <ChevronsRight size={18} />
+            </button>
           </div>
-          <button className="p-2 text-slate-400 hover:text-slate-600">
-            <ChevronRight size={18} />
-          </button>
-          <button className="p-2 text-slate-400 hover:text-slate-600">
-            <ChevronsRight size={18} />
-          </button>
-        </div>
+        )}
       </section>
     </div>
   );
