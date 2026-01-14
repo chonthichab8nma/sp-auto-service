@@ -4,7 +4,6 @@ import {
   Route,
   useParams,
   useNavigate,
-  Navigate,
   useLocation,
 } from "react-router";
 import Station from "./components/Station";
@@ -13,11 +12,10 @@ import JobDetail from "./components/JobDetailPage";
 import StationPage from "./components/StationPage";
 import Sidebar from "./components/Sidebar";
 import CreateJobForm from "./components/CreateJobForm";
-// import Login from "./components/Login";
-
 
 import { type Job, type JobFormData, type StepStatus } from "./Type";
 import { INITIAL_STAGES, MOCK_JOBS } from "./data";
+
 
 function JobDetailWrapper({
   jobs,
@@ -95,23 +93,22 @@ function App() {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // โหลดข้อมูล Jobs จาก LocalStorage
   const [jobs, setJobs] = useState<Job[]>(() => {
     const savedJobs = localStorage.getItem("job_form");
     return savedJobs ? JSON.parse(savedJobs) : MOCK_JOBS;
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem("isAuthenticated") === "true";
-  });
-
+  // บันทึก Jobs ลง LocalStorage เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
     localStorage.setItem("job_form", JSON.stringify(jobs));
   }, [jobs]);
 
+  // ฟังก์ชัน Logout (แบบ Dummy เพราะไม่มีระบบ Login แล้ว แต่คงไว้เผื่อ Sidebar ต้องการ prop นี้)
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    setIsAuthenticated(false);
-    navigate("/login");
+    // อาจจะให้แจ้งเตือนหรือ Refresh หน้าจอก็ได้
+    console.log("Logout clicked (No Auth mode)");
+    navigate("/");
   };
 
   const handleCreateJob = (formData: JobFormData) => {
@@ -185,76 +182,49 @@ function App() {
   };
 
   return (
-    <Routes>
-      {/* <Route
-        path="/login"
-        element={
-          !isAuthenticated ? (
-            <Login onLoginSuccess={() => setIsAuthenticated(true)} />
-          ) : (
-            <Navigate to="/" />
-          )
-        }
-      /> */}
-
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? (
-            <div className="flex h-screen bg-[#F8F9FA] overflow-hidden">
-              <Sidebar
-                isCollapsed={isCollapsed}
-                onToggle={() => setIsCollapsed(!isCollapsed)}
-                onLogout={handleLogout}
-                activePath={location.pathname}
-              />
-
-              <main className="flex-1 overflow-y-auto">
-                <div className="p-4 md:p-10 font-sans">
-                  <Routes>
-                    <Route path="/" element={<Dashboard jobs={jobs} />} />
-
-                    <Route path="/stations" element={<Station jobs={jobs} />} />
-
-                    <Route
-                      path="/create"
-                      element={
-                        <CreateJobForm
-                          onCancel={() => navigate("/")}
-                          onSubmit={handleCreateJob}
-                        />
-                      }
-                    />
-
-                    <Route
-                      path="/job/:jobId"
-                      element={
-                        <JobDetailWrapper
-                          jobs={jobs}
-                          onUpdate={handleUpdateJob}
-                        />
-                      }
-                    />
-
-                    <Route
-                      path="/stations/:jobId"
-                      element={
-                        <StationWrapper
-                          jobs={jobs}
-                          onUpdateStep={handleUpdateStep}
-                        />
-                      }
-                    />
-                  </Routes>
-                </div>
-              </main>
-            </div>
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
+    <div className="flex h-screen bg-[#F8F9FA] overflow-hidden">
+      <Sidebar
+        isCollapsed={isCollapsed}
+        onToggle={() => setIsCollapsed(!isCollapsed)}
+        onLogout={handleLogout}
+        activePath={location.pathname}
       />
-    </Routes>
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-4 md:p-10 font-sans">
+          <Routes>
+            {/* หน้าแรกเป็น Dashboard */}
+            <Route path="/" element={<Dashboard jobs={jobs} />} />
+
+            <Route path="/stations" element={<Station jobs={jobs} />} />
+
+            <Route
+              path="/create"
+              element={
+                <CreateJobForm
+                  onCancel={() => navigate("/")}
+                  onSubmit={handleCreateJob}
+                />
+              }
+            />
+
+            <Route
+              path="/job/:jobId"
+              element={
+                <JobDetailWrapper jobs={jobs} onUpdate={handleUpdateJob} />
+              }
+            />
+
+            <Route
+              path="/stations/:jobId"
+              element={
+                <StationWrapper jobs={jobs} onUpdateStep={handleUpdateStep} />
+              }
+            />
+          </Routes>
+        </div>
+      </main>
+    </div>
   );
 }
 
