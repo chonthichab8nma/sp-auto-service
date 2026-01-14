@@ -7,13 +7,14 @@ import {
   Navigate,
   useLocation,
 } from "react-router";
+import Station from "./components/Station";
 import Dashboard from "./components/Dashboard";
 import JobDetail from "./components/JobDetailPage";
 import StationPage from "./components/StationPage";
 import Sidebar from "./components/Sidebar";
 import CreateJobForm from "./components/CreateJobForm";
-import Login from "./components/Login";
-// import data from "./data";
+// import Login from "./components/Login";
+
 
 import { type Job, type JobFormData, type StepStatus } from "./Type";
 import { INITIAL_STAGES, MOCK_JOBS } from "./data";
@@ -28,7 +29,7 @@ function JobDetailWrapper({
   const { jobId } = useParams();
   const navigate = useNavigate();
 
-  const job = jobs.find((j) => j.id === jobId);
+  const job = jobs.find((j) => String(j.id) === String(jobId));
 
   if (!job) {
     return (
@@ -62,7 +63,7 @@ function StationWrapper({
   const { jobId } = useParams();
   const navigate = useNavigate();
 
-  const job = jobs.find((j) => j.id === jobId);
+  const job = jobs.find((j) => String(j.id) === String(jobId));
 
   if (!job) {
     return (
@@ -185,7 +186,7 @@ function App() {
 
   return (
     <Routes>
-      <Route
+      {/* <Route
         path="/login"
         element={
           !isAuthenticated ? (
@@ -194,7 +195,7 @@ function App() {
             <Navigate to="/" />
           )
         }
-      />
+      /> */}
 
       <Route
         path="/*"
@@ -212,6 +213,8 @@ function App() {
                 <div className="p-4 md:p-10 font-sans">
                   <Routes>
                     <Route path="/" element={<Dashboard jobs={jobs} />} />
+
+                    <Route path="/stations" element={<Station jobs={jobs} />} />
 
                     <Route
                       path="/create"
@@ -234,7 +237,7 @@ function App() {
                     />
 
                     <Route
-                      path="/station/:jobId"
+                      path="/stations/:jobId"
                       element={
                         <StationWrapper
                           jobs={jobs}

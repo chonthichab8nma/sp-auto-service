@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { ChevronLeft, CarFront, X, Save } from "lucide-react";
+import { ChevronLeft,ChevronRight, CarFront, X, Save,Check } from "lucide-react";
 import { useState } from "react";
 import { type Job } from "../Type";
 
@@ -132,6 +132,42 @@ export default function JobDetailPage({ job, onUpdate }: JobDetailPageProps) {
             <ChevronLeft size={18} />
           </button>
 
+          <div className="flex flex-col gap-4">
+  <div className="flex flex-wrap items-center gap-2 text-sm text-[#171717]">
+    {job.stages.map((stage, idx) => {
+      const isActive = idx === job.currentStageIndex;
+      const isCompleted = stage.isCompleted;
+      return (
+        <div key={stage.id} className="flex items-center gap-2">
+          <span
+            className={`flex h-5 w-5 items-center justify-center rounded-full text-xs transition-colors ${
+              isCompleted
+                ? "bg-[#1fc16b] text-white" 
+                : isActive
+                ? "bg-[#335cff] text-white" 
+                : "border border-[#ebebeb] bg-white text-[#5c5c5c]" 
+            }`}
+          >
+            {isCompleted ? <Check size={12} /> : idx + 1}
+          </span>
+          <span
+            className={`font-medium ${
+              isCompleted || isActive
+                ? "text-[#171717]"
+                : "text-[#a3a3a3]"
+            }`}
+          >
+            {stage.name}
+          </span>
+          {idx < job.stages.length - 1 && (
+            <ChevronRight size={16} className="text-[#d1d1d1] mx-1" />
+          )}
+        </div>
+      );
+    })}
+  </div>
+</div>
+
           {/* Mockup Stepper (Visual Only to match screenshot) */}
           {/* <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-1 text-green-600 font-medium">
@@ -175,7 +211,7 @@ export default function JobDetailPage({ job, onUpdate }: JobDetailPageProps) {
             </>
           ) : (
             <button
-              onClick={() => navigate(`/station/${job.id}`)}
+              onClick={() => navigate(`/stations/${job.id}`)}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-blue-700 transition-all"
             >
               เช็กสถานะรถ

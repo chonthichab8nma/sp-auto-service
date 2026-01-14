@@ -114,7 +114,7 @@ export default function StationPage({ job, onUpdateStep }: StationPageProps) {
                     {stage.name.split(". ")[1] || stage.name}
                   </span>
                   {idx < job.stages.length - 1 && (
-                    <div className="h-[1px] bg-slate-200 flex-1 ml-2" />
+                    <div className="h-px bg-slate-200 flex-1 ml-2" />
                   )}
                 </div>
               );
@@ -123,14 +123,14 @@ export default function StationPage({ job, onUpdateStep }: StationPageProps) {
         </div>
 
 
-        <div className="flex flex-1 min-h-[500px]">
+        <div className="flex flex-1 min-h-125">
 
           <div className="w-1/2 border-r border-slate-100 bg-white p-6 overflow-y-auto">
             <h3 className="font-bold text-slate-800 mb-6">
               {currentStage.name}
             </h3>
             <div className="relative pl-2">
-              <div className="absolute left-[19px] top-2 bottom-0 w-[2px] bg-slate-100" />
+              <div className="absolute left-4.75 top-2 bottom-0 w-0.5 bg-slate-100" />
               {currentStage.steps.map((step) => {
                 const isActive = activeStepId === step.id;
                 return (
@@ -140,7 +140,7 @@ export default function StationPage({ job, onUpdateStep }: StationPageProps) {
                     className={`relative pl-10 pb-6 cursor-pointer group`}
                   >
                     <div
-                      className={`absolute left-[15px] top-1 w-2.5 h-2.5 rounded-full z-10 ring-4 ring-white transition-all ${
+                      className={`absolute left-3.75 top-1 w-2.5 h-2.5 rounded-full z-10 ring-4 ring-white transition-all ${
                         isActive
                           ? "bg-blue-500 scale-125"
                           : step.status === "completed"

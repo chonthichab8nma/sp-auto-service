@@ -2,7 +2,13 @@ import React, { useState } from "react";
 // import { XCircle } from "lucide-react";
 import { type JobFormData } from "../Type";
 import FormInput from "./FormInput";
-
+import FormSelect from "./FormSelect";
+import { 
+  CAR_TYPES, 
+  CAR_BRANDS, 
+  CAR_MODELS, 
+  YEARS 
+} from "../data";
 interface CreateJobFormProps {
   onCancel: () => void;
   onSubmit: (data: JobFormData) => void;
@@ -28,7 +34,7 @@ export default function CreateJobForm({
     color: "",
     startDate: new Date().toISOString().split("T")[0],
     estimatedEndDate: "",
-    receiver: "Teach Tichan",
+    receiver: "",
     excessFee: 0,
     paymentType: "Insurance",
     insuranceCompany: "",
@@ -53,7 +59,6 @@ export default function CreateJobForm({
 
   return (
     <div className="w-full bg-white border border-slate-200 overflow-hidden font-sans">
-      {/* Header */}
       <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-start">
         <div>
           <h2 className="text-xl font-bold text-slate-800">รับรถเข้าจอดซ่อม</h2>
@@ -91,7 +96,8 @@ export default function CreateJobForm({
               onChange={handleChange}
               required
             />
-            <FormInput
+            <FormSelect
+              options={CAR_TYPES}
               label={<LabelWithStar text="ประเภทรถ" />}
               name="type"
               value={formData.type}
@@ -100,7 +106,8 @@ export default function CreateJobForm({
               required
             />
 
-            <FormInput
+            <FormSelect
+              options={CAR_BRANDS}
               label={<LabelWithStar text="ยี่ห้อ/แบรนด์" />}
               name="brand"
               value={formData.brand}
@@ -108,7 +115,8 @@ export default function CreateJobForm({
               placeholder="เลือกยี่ห้อ"
               required
             />
-            <FormInput
+            <FormSelect
+              options={CAR_MODELS}
               label={<LabelWithStar text="รุ่น" />}
               name="model"
               value={formData.model}
@@ -117,12 +125,12 @@ export default function CreateJobForm({
               required
             />
             <div className="grid grid-cols-2 gap-4">
-              <FormInput
+              <FormSelect
+                options={YEARS}
                 label={<LabelWithStar text="ปี" />}
                 name="year"
                 value={formData.year}
                 onChange={handleChange}
-                type="number"
                 placeholder="เลือกปี"
                 required
               />
@@ -174,12 +182,20 @@ export default function CreateJobForm({
             />
 
             <div className="md:col-span-3 pt-2">
-              <div className="flex items-center gap-2 text-sm">
+              <FormInput
+              label={<LabelWithStar text="เจ้าหน้าที่รับรถ" />}
+              name="receiver"
+              value={formData.receiver}
+              onChange={handleChange}
+              type="text"
+              required
+            />
+              {/* <div className="flex items-center gap-2 text-sm">
                 <span className="text-slate-500">เจ้าหน้าที่รับรถ:</span>
                 <span className="text-slate-800 font-medium">
                   {formData.receiver || "Teach Tichan"}
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

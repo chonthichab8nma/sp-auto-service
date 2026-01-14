@@ -11,9 +11,10 @@ export default function JobDetailPage({ job }: JobDetailPageProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="animate-in fade-in duration-300 p-6 min-h-screen bg-gray-50">
+    <div className=" animate-in fade-in duration-300 p-6 min-h-screen bg-gray-50">
+      <div className=" rounded-xl shadow-sm border border-slate-200 p-8">
      
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 ">
         <div className="flex items-center gap-2 text-sm text-slate-500">
           <button
             onClick={() => navigate(-1)}
@@ -37,7 +38,7 @@ export default function JobDetailPage({ job }: JobDetailPageProps) {
       </div>
 
   
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+      
         <div className="flex justify-between items-start mb-8 border-b border-slate-100 pb-6">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200">
@@ -124,5 +125,6 @@ export default function JobDetailPage({ job }: JobDetailPageProps) {
         </div>
       </div>
     </div>
+    
   );
 }
