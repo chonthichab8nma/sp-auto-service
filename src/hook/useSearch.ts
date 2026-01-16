@@ -14,7 +14,6 @@ export const filterData = (
   const queryNormal = searchTerm.toLowerCase().trim();
 
   return data.filter((item) => {
-    
     const reg = (item.registration || "").toLowerCase().replace(/\s+/g, "");
     const name = (item.customerName || "").toLowerCase();
     const brand = (item.brand || "").toLowerCase();
@@ -45,21 +44,20 @@ export const filterData = (
     let matchesDate = true;
     if (startDate || endDate) {
       const jobStart = new Date(item.startDate).getTime();
-      // ถ้าไม่มีวันจบ ให้ใช้วันเริ่มแทน (หรือจะจัดการ logic อื่นตาม business flow)
-      const jobEnd = item.estimatedEndDate 
-        ? new Date(item.estimatedEndDate).getTime() 
-        : jobStart; 
+
+      const jobEnd = item.estimatedEndDate
+        ? new Date(item.estimatedEndDate).getTime()
+        : jobStart;
 
       if (startDate) {
         const filterStart = new Date(startDate).setHours(0, 0, 0, 0);
-        // เช็คว่า: วันเริ่มงาน ต้องไม่น้อยกว่า วันเริ่มที่เลือก (ต้องเริ่มในกรอบ)
+
         if (jobStart < filterStart) matchesDate = false;
       }
 
       if (endDate) {
         const filterEnd = new Date(endDate).setHours(23, 59, 59, 999);
-        // เช็คว่า: วันจบงาน ต้องไม่เกิน วันสิ้นสุดที่เลือก (ต้องจบในกรอบ)
-        // ** จุดที่แก้คือตรงนี้ครับ เปลี่ยนจาก jobStart เป็น jobEnd **
+
         if (jobEnd > filterEnd) matchesDate = false;
       }
     }

@@ -15,36 +15,52 @@ interface StationPageProps {
 
 export default function StationPage({ job, onUpdateStep }: StationPageProps) {
   const navigate = useNavigate();
-  const currentStage = job.stages[job.currentStageIndex];
+
+  const stageIdx = job.currentStageIndex;
+  const currentStage = job.stages[stageIdx];
 
   const initialActiveId =
     currentStage.steps.find((s) => s.status === "pending")?.id ||
     currentStage.steps[0].id;
-  const [activeStepId, setActiveStepId] = useState<string>(initialActiveId);
 
-  const activeStep = currentStage.steps.find((s) => s.id === activeStepId);
+  const [activeStepId, setActiveStepId] = useState<string>(initialActiveId);
   const [operatorName, setOperatorName] = useState("");
   const [selectedAction, setSelectedAction] = useState<StepStatus | null>(null);
 
+  const currentIndex = currentStage.steps.findIndex(
+    (s) => s.id === activeStepId
+  );
+  const activeStep = currentStage.steps[currentIndex];
+
+  const isLastStage = stageIdx === job.stages.length - 1;
+  const isLastStep = currentIndex === currentStage.steps.length - 1;
+  const isFinalProcess = isLastStage && isLastStep;
+
+  const [error, setError] = useState<string | null>(null);
+
   const handleSave = () => {
     if (!selectedAction || selectedAction === "pending") return;
+
     if (!operatorName && selectedAction === "completed") {
-      alert("กรุณาระบุชื่อผู้ดำเนินการ");
+      setError("กรุณาระบุชื่อผู้ดำเนินการก่อนบันทึก");
       return;
     }
-    onUpdateStep(
-      job.currentStageIndex,
-      activeStepId,
-      selectedAction,
-      operatorName
-    );
+    setError(null);
 
-  
-    const currentIndex = currentStage.steps.findIndex(
-      (s) => s.id === activeStepId
-    );
-    if (currentIndex < currentStage.steps.length - 1) {
-      setActiveStepId(currentStage.steps[currentIndex + 1].id);
+    onUpdateStep(stageIdx, activeStepId, selectedAction, operatorName);
+
+    if (isFinalProcess) {
+      alert("ดำเนินการตั้งเบิกเรียบร้อยแล้ว");
+      navigate("/");
+    } else if (currentIndex < currentStage.steps.length - 1) {
+      const nextStepId = currentStage.steps[currentIndex + 1].id;
+      setActiveStepId(nextStepId);
+
+      setSelectedAction(null);
+      setOperatorName("");
+    } else {
+      alert("บันทึกข้อมูลเรียบร้อยแล้ว");
+      navigate("/");
     }
   };
 
@@ -65,7 +81,6 @@ export default function StationPage({ job, onUpdateStep }: StationPageProps) {
       </div>
 
       <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm mx-0 md:mx-0 overflow-hidden border border-slate-200">
-
         <div className="p-6 border-b border-slate-100">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
@@ -122,9 +137,7 @@ export default function StationPage({ job, onUpdateStep }: StationPageProps) {
           </div>
         </div>
 
-
         <div className="flex flex-1 min-h-125">
-
           <div className="w-1/2 border-r border-slate-100 bg-white p-6 overflow-y-auto">
             <h3 className="font-bold text-slate-800 mb-6">
               {currentStage.name}
@@ -193,7 +206,6 @@ export default function StationPage({ job, onUpdateStep }: StationPageProps) {
             </div>
           </div>
 
-
           <div className="w-1/2 bg-slate-50/50 p-6 flex flex-col">
             {activeStep ? (
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-0">
@@ -227,8 +239,17 @@ export default function StationPage({ job, onUpdateStep }: StationPageProps) {
                       placeholder="ระบุชื่อผู้ดำเนินการ"
                       className="w-full border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none"
                       value={operatorName}
-                      onChange={(e) => setOperatorName(e.target.value)}
+                      onChange={(e) => {
+                        setOperatorName(e.target.value);
+                        if (error) setError(null);
+                      }}
                     />
+                    {error && (
+                      <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                        <span className="w-1 h-1 bg-red-500 rounded-full" />{" "}
+                        {error}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">

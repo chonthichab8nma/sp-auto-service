@@ -11,8 +11,10 @@ export default function Station({ jobs }: { jobs: Job[] }) {
   const [selectedCarType, setSelectedCarType] = useState("ทั้งหมด");
   const [selectedStatus, setSelectedStatus] = useState("ทั้งหมด");
 
+  
+
   const allStatusOptions = useMemo(() => {
-    return ["ทั้งหมด", ...INITIAL_STAGES.map(s => s.name), "เสร็จสิ้น"];
+    return ["สถานะ", ...INITIAL_STAGES.map(s => s.name), "เสร็จสิ้น"];
   }, []);
 
   const filteredJobs = useMemo(() => {
@@ -96,7 +98,7 @@ export default function Station({ jobs }: { jobs: Job[] }) {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="appearance-none pl-4 pr-10 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 bg-white hover:bg-slate-50 outline-none cursor-pointer min-w-35"
             >
-              <option value="ทั้งหมด">สถานะ</option>
+              {/* <option value="ทั้งหมด">สถานะ</option> */}
               {allStatusOptions.map((status) => (
                 <option key={status} value={status}>
                   {status}
